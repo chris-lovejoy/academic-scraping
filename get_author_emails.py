@@ -99,7 +99,7 @@ if __name__ == "__main__":
     dataframe = create_dataframe(results)
 
     # Name file based on search term and date, and save
-    file_name = f"{query}_{str(date.today())}.csv"
+    file_name = f"./output/{query}_{str(date.today())}.csv"
     dataframe.to_csv(file_name)
     print(f"Search completed. {len(dataframe)} results found. File saved as: '{file_name}'")
 
