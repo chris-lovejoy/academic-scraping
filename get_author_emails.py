@@ -44,25 +44,28 @@ def create_dataframe(results):
         try:
             # Get emails by regex across string of all authors
             string = str(results['PubmedArticle'][i]['MedlineCitation']['Article']['AuthorList'])
-            emails = re.findall('\S+@[a-zA-Z]+.[a-zA-Z]+', string)
+            emails = re.findall('\S+@[a-zA-Z]+.[a-zA-Z]+.[a-zA-Z]+.[a-zA-Z]+', string)
             
             if emails != []:
                 emails_to_add = []
-                                
+
+                for index, email in enumerate(emails):
+
                     # If email not already in list, add it
                     if emails[index] not in list(dataframe['emails']):
                         emails_to_add.append(emails[index])
 
-                    emails_series = pd.Series(emails_to_add, dtype=str)
-                    single_paper_df['emails'] = emails_series
-                                
-                    # 2. add other paper information
-                    single_paper_df['title'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleTitle']
-                    single_paper_df['year'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleDate'][0]['Year']
-                    
-                dataframe = dataframe.append(single_paper_df)
+                emails_series = pd.Series(emails_to_add, dtype=str)
+                single_paper_df['emails'] = emails_series
+                            
+                # Add other paper information
+                single_paper_df['paper_title'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleTitle']
+                single_paper_df['year_published'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleDate'][0]['Year']
+                
+                dataframe = pd.concat([dataframe, single_paper_df])
 
-        except:
+        except Exception as e:
+            # print(e)
             pass
 
     return dataframe
