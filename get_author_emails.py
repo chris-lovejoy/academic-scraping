@@ -7,9 +7,9 @@ import re
 
 def create_search_term(args):
     query = args.search_terms[0] # Index into the search term itself
-    # TODO: update to handle multiple affiliations
     if args.affiliation:
-        query += " " + args.affiliation[0] + "[Affiliation]"    
+        for affil in args.affiliation:
+            query += " " + affil + "[Affiliation]"
     return query
 
 def run_search(query):
