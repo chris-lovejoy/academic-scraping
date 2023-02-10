@@ -10,7 +10,7 @@ Entrez.email = config.email
 
 # (2) Parse command line input prompts
 parser = argparse.ArgumentParser(description='Get author emails from pubmed')
-parser.add_argument('core_search_terms', type=str, nargs='1',
+parser.add_argument('search_terms', type=str, nargs=1,
                     help='The main terms to query, provided as a single string.')
 parser.add_argument('--affiliation', type=str, nargs='+',
                     help='The organisational affiliation to query. Will limit to papers where \
@@ -22,9 +22,9 @@ args = parser.parse_args()
 
 
 def create_search_term(args):
-    # TODO: create the search terms from the argpase
-    
-    query = None
+    query = args.search_terms[0] # Index into the search term itself
+    if args.affiliation:
+        query += " " + args.affiliation[0] + "[Affiliation]"    
     return query
 
 def run_search(query):
