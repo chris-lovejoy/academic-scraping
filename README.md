@@ -14,13 +14,13 @@ The purpose of this project is to enable easy scraping of information from acade
 
 ## About
 
-### Getting Author Emails
+### (1) Getting Author Emails
 
 The first script [get_author_emails.py](./get_author_emails.py) enables you to find the emails of authors who have published in an area of your interest.
 
 You can run this scripe as specified [below](#get_author_emailspy).
 
-### Planned future work
+### (2) Planned future work
 The next planned script is to enable the download of academic paper content and abstract. The main anticipated utility of this is for NLP, including the use of large language models.
 
 All other script suggestions are warmly invited. (Please submit an Issue or Pull Request.)
