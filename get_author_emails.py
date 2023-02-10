@@ -13,22 +13,26 @@ def create_search_term(args):
     return query
 
 def run_search(query):
-    handle = Entrez.esearch(db='pubmed', 
-                            sort='relevance', 
-                            retmax='1000',
-                            retmode='xml', 
-                            term=query)
+    try:
+        handle = Entrez.esearch(db='pubmed', 
+                                sort='relevance', 
+                                retmax='1000',
+                                retmode='xml', 
+                                term=query)
 
-    search = Entrez.read(handle)
-    pubmed_ids = search['IdList']
+        search = Entrez.read(handle)
+        pubmed_ids = search['IdList']
 
-    ids_string = ','.join(pubmed_ids)
-    handle = Entrez.efetch(db='pubmed',
-                        retmode='xml',
-                        id=ids_string)
+        ids_string = ','.join(pubmed_ids)
+        handle = Entrez.efetch(db='pubmed',
+                            retmode='xml',
+                            id=ids_string)
 
-    results = Entrez.read(handle)
-    return results
+        results = Entrez.read(handle)
+        return results
+    except Exception as e:
+        # print(e)
+        return None
 
 def create_dataframe(results):
     
@@ -87,10 +91,12 @@ args = parser.parse_args()
 if __name__ == "__main__":
     query = create_search_term(args)
     results = run_search(query)
-    dataframe = create_dataframe(results)
+    if results:
+        dataframe = create_dataframe(results)
 
-    # Name file based on search term and date, and save
-    file_name = f"./output/{query}_{str(date.today())}.csv"
-    dataframe.to_csv(file_name)
-    print(f"Search completed. {len(dataframe)} results found. File saved as: '{file_name}'")
-
+        # Name file based on search term and date, and save
+        file_name = f"./output/{query}_{str(date.today())}.csv"
+        dataframe.to_csv(file_name)
+        print(f"Search completed. {len(dataframe)} results found. File saved as: '{file_name}'")
+    else:
+        print("No results found.")
