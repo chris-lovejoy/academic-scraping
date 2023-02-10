@@ -46,7 +46,7 @@ def create_dataframe(results):
         single_paper_df = pd.DataFrame()
 
         try:
-            # Get emails by regex across string of all authors
+            # Get emails by regex across string of all author information
             string = str(results['PubmedArticle'][i]['MedlineCitation']['Article']['AuthorList'])
             emails = re.findall('\S+@[a-zA-Z]+.[a-zA-Z]+.[a-zA-Z]+.[a-zA-Z]+', string)
             
