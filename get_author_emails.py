@@ -3,23 +3,7 @@ import argparse
 import config
 import pandas as pd
 from datetime import date
-
-
-# (1) Define email for query based on config.py file
-Entrez.email = config.email
-
-# (2) Parse command line input prompts
-parser = argparse.ArgumentParser(description='Get author emails from pubmed')
-parser.add_argument('search_terms', type=str, nargs=1,
-                    help='The main terms to query, provided as a single string.')
-parser.add_argument('--affiliation', type=str, nargs='+',
-                    help='The organisational affiliation to query. Will limit to papers where \
-                    1+ authors have that affiliation. Can provide multiple - if so, will only \
-                    return papers where ALL listed affiliations are present.')
-# TODO: consider adding further search term options
-
-args = parser.parse_args()
-
+import re
 
 def create_search_term(args):
     query = args.search_terms[0] # Index into the search term itself
@@ -43,20 +27,79 @@ def run_search(query):
                         id=ids_string)
 
     results = Entrez.read(handle)
-
     return results
 
+def create_dataframe(results):
+    
+    # Populate dataframe
+    dataframe = pd.DataFrame(columns=['emails'])
 
-def create_output(results):
-    # TODO: convert search results appropriate file output.
-    # (probably CSV, perhaps provide options)
+    for i, paper in enumerate(results['PubmedArticle']):
+        
+        single_paper_df = pd.DataFrame()
 
-    print("Search completed. {n} results found. File saved as: {file_name}")
+        # 1. get emails
+        try:
+            string = str(results['PubmedArticle'][i]['MedlineCitation']['Article']['AuthorList'])
+            emails = re.findall('\S+@\S+', string)    
+            
+            if emails != []:
+                
+                emails_to_add = []
+                
+                # clean to get just the email
+                for index, email in enumerate(emails):
+                    emails[index] = re.sub('}', '', emails[index])
+                    emails[index] = re.sub(']', '', emails[index])
+                    emails[index] = re.sub(' ', '', emails[index])
+                    emails[index] = re.sub("'", '', emails[index])
+                    emails[index] = re.sub(',', '', emails[index])
+                    
+                    if emails[index][-1] == '.' or emails[index][-1] == "'" or emails[index][-1] == '"':
+                        emails[index] = emails[index][:-1]
+                    if emails[index][-1] == '.' or emails[index][-1] == "'" or emails[index][-1] == '"':
+                        emails[index] = emails[index][:-1]
+                        
+                        
+                    # add only if not a duplicate
+                    if emails[index] not in list(dataframe['emails']):
+                        emails_to_add.append(emails[index])
 
-    return None
+                    emails_series = pd.Series(emails_to_add, dtype=str)
+                    single_paper_df['emails'] = emails_series
+                                
+                    # 2. add other paper information
+                    single_paper_df['title'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleTitle']
+                    single_paper_df['year'] = results['PubmedArticle'][i]['MedlineCitation']['Article']['ArticleDate'][0]['Year']
+                    
+                dataframe = dataframe.append(single_paper_df)
 
+        except:
+            pass
+
+    return dataframe
+
+# (1) Define email for query based on config.py file
+Entrez.email = config.email
+
+# (2) Parse command line input prompts
+parser = argparse.ArgumentParser(description='Get author emails from pubmed')
+parser.add_argument('search_terms', type=str, nargs=1,
+                    help='The main terms to query, provided as a single string.')
+parser.add_argument('--affiliation', type=str, nargs='+',
+                    help='The organisational affiliation to query. Will limit to papers where \
+                    1+ authors have that affiliation. Can provide multiple - if so, will only \
+                    return papers where ALL listed affiliations are present.')
+# TODO: consider adding further search term options
+args = parser.parse_args()
 
 if __name__ == "__main__":
     query = create_search_term(args)
     results = run_search(query)
-    create_output(results)
+    dataframe = create_dataframe(results)
+
+    # Name file based on search term and date, and save
+    file_name = f"{query}_{str(date.today())}.csv"
+    dataframe.to_csv(file_name)
+    print(f"Search completed. {len(dataframe)} results found. File saved as: '{file_name}'")
+
