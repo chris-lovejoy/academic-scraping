@@ -7,6 +7,7 @@ import re
 
 def create_search_term(args):
     query = args.search_terms[0] # Index into the search term itself
+    # TODO: update to handle multiple affiliations
     if args.affiliation:
         query += " " + args.affiliation[0] + "[Affiliation]"    
     return query
@@ -31,37 +32,24 @@ def run_search(query):
 
 def create_dataframe(results):
     
-    # Populate dataframe
+    # Create empty dataframe
     dataframe = pd.DataFrame(columns=['emails'])
 
+    # Loop over all pubmed articles in search results
     for i, paper in enumerate(results['PubmedArticle']):
         
+        # Create empty dataframe for each paper
         single_paper_df = pd.DataFrame()
 
-        # 1. get emails
         try:
+            # Get emails by regex across string of all authors
             string = str(results['PubmedArticle'][i]['MedlineCitation']['Article']['AuthorList'])
-            emails = re.findall('\S+@\S+', string)    
+            emails = re.findall('\S+@[a-zA-Z]+.[a-zA-Z]+', string)
             
             if emails != []:
-                
                 emails_to_add = []
-                
-                # clean to get just the email
-                for index, email in enumerate(emails):
-                    emails[index] = re.sub('}', '', emails[index])
-                    emails[index] = re.sub(']', '', emails[index])
-                    emails[index] = re.sub(' ', '', emails[index])
-                    emails[index] = re.sub("'", '', emails[index])
-                    emails[index] = re.sub(',', '', emails[index])
-                    
-                    if emails[index][-1] == '.' or emails[index][-1] == "'" or emails[index][-1] == '"':
-                        emails[index] = emails[index][:-1]
-                    if emails[index][-1] == '.' or emails[index][-1] == "'" or emails[index][-1] == '"':
-                        emails[index] = emails[index][:-1]
-                        
-                        
-                    # add only if not a duplicate
+                                
+                    # If email not already in list, add it
                     if emails[index] not in list(dataframe['emails']):
                         emails_to_add.append(emails[index])
 
