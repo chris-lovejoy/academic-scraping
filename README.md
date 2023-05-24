@@ -1,4 +1,4 @@
-# Academic Scarping
+# Academic Scraping
 
 The purpose of this project is to enable easy scraping of information from academic journals.
 
